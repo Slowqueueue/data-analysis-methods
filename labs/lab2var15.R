@@ -1,0 +1,37 @@
+data<-read.table('C:/lab2.csv', header = TRUE, sep = ',', stringsAsFactors = FALSE)
+install.packages("clusterSim")
+library(clusterSim)
+data_norm<-data.Normalization(data[,1:4],type = "n8", normalization = "column")
+dist.prog<-dist(data_norm)
+clust.prog<-hclust(dist.prog,"ward.D")
+plot(clust.prog, hang = -1)
+rect.hclust(clust.prog, k=4,border = "red")
+d2<-cophenetic(clust.prog)
+cor(dist.prog,d2)
+cosine_similarity <- function(A, B) {
+  sum(A * B) / (sqrt(sum(A^2)) * sqrt(sum(B^2)))
+}
+cosine_similarity(as.matrix(dist.prog), as.matrix(d2))
+install.packages('vegan')
+library(vegan)
+mantel_result <- mantel(as.dist(dist.prog), as.dist(d2))
+mantel_result
+install.packages("gplots")
+library(gplots)
+data_heat<-as.matrix(data_norm)
+clust.prog2<-function(x) hclust(x,"ward.D")
+hv3<-heatmap.2(data_heat,,hclustfun = clust.prog2)
+summ.1=kmeans(data_norm,4,iter.max = 100)
+wss<-(nrow(data_norm)-1)*sum(apply(data_norm,2,var))
+for (i in 1:47)wss[i] <- kmeans(data_norm,centers = i)$tot.withinss
+plot(1:47,wss,type = "b",xlab = "numbers of clusters", ylab = "within groups sum of squares")
+wss2<-(nrow(data_norm)-1)*sum(apply(data_norm,2,var))
+for (i in 1:47) wss2[i]<-kmeans(data_norm,centers = i)$betweenss
+plot(1:47,wss2,type = "b", xlab = "numbers of clusters", ylab = "betweenss groups sum of squares")
+install.packages("factoextra")
+library(factoextra)
+p4<-fviz_cluster(summ.1,data = data_norm,ellipse.type = "norm",show.clust.cent = TRUE,ellipse = TRUE)
+p4
+install.packages("NbClust")
+library(NbClust)
+res.nbclust<-NbClust(data_norm,distance = "euclidean",min.nc = 2,max.nc = 8,method = "complete",index = "all")
